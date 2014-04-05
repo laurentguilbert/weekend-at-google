@@ -7,7 +7,10 @@ class Car(object):
     CAR_ID = 1
     TOTAL_LEN = 0
 
-    def __init__(self, node):
+    def __init__(self, node, dest_lat=0, dest_long=0):
+        self.stop_fixed_dest = False
+        self.dest_lat = dest_lat
+        self.dest_long = dest_long
         self.node = node
         self.id = Car.CAR_ID
         self.time = 0
@@ -17,6 +20,28 @@ class Car(object):
 
     def add_time(self, time):
         self.time += time
+
+    def reach_max_fixed(self):
+        return len(self.visited_nodes) > 100
+
+    def reach_dest(self, dest):
+        if self.distante_to_dest(*dest) < 0.002:
+            return True
+        return False
+
+    def has_fixed_dest(self, dest):
+        # if self.stop_fixed_dest:
+        #     return False
+        # if self.reach_dest(dest):
+        #     self.stop_fixed_dest = True
+        #     return False
+        if (self.dest_long == 0 and self.dest_lat == 0) or self.reach_max_fixed():
+            return False
+        return True
+
+    def distante_to_dest(self, lat, long):
+        from math import sqrt
+        return sqrt(pow(lat - self.dest_lat, 2) + pow(long - self.dest_long, 2))
 
     def move(self, edge_dict, dest_node):
         self.add_time(edge_dict['cost'])
@@ -49,7 +74,7 @@ class Street(object):
 
     @property
     def score(self):
-        return float(self.len) # / (float(self.cost) * 2)
+        return float(self.len) / (float(self.cost) * 2)
 
 
 class AtchoumParser(object):

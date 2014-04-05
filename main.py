@@ -8,12 +8,17 @@ from graph import Graph
 from helpers import log_debug
 
 def sort_std2(g, edges):
-    edges.sort(key=lambda e: (g.edge_visited(e), -g.edge_score(e)))
+    edges.sort(key=lambda e: g.edge_visited(e))
     return edges
 
 def move(g, car, max_time):
-    edges = [e for e in g.edges(car.node) if car.time + g.edge_cost(e) <= max_time]
-    edges = sort_std2(g, edges)
+    edges = g.edges(car.node)
+
+    if car.has_fixed_dest((g.node_lat(car.node), g.node_long(car.node))):
+        edges.sort(key=lambda e: car.distante_to_dest(g.node_lat(e[1]), g.node_long(e[1])))
+    else:
+        edges = [e for e in edges if car.time + g.edge_cost(e) <= max_time]
+        edges = sort_std2(g, edges)
     next_node = edges[0] if len(edges) else None
     if next_node is not None:
         car.move(g.edge_dict(next_node), next_node[1])
@@ -36,23 +41,42 @@ def whilecanmove(cars, g, max_time):
 
 def main(func, div_time, filename):
     data = AtchoumParser.from_filename(filename)
-    cars_count = data.cars
+    cars_count = data.cars + 200
     max_time = data.time
     start_node = data.start
     g = Graph(data, div_time)
 
+
     cars = [Car(node=start_node) for _ in range(cars_count)]
+
+    cars[0].dest_lat = 48.840
+    cars[0].dest_long = 2.318
+
+    # cars[1].dest_lat = 48.820
+    # cars[1].dest_long = 2.344
+
+    # cars[2].dest_lat = 48.827
+    # cars[2].dest_long = 2.315
+
+    # cars[3].dest_lat = 48.842
+    # cars[3].dest_long = 2.336
 
     func(cars, g, max_time)
 
-    print cars_count
+    cars.sort(key=lambda c: -c.total_len)
+    cars = cars[:data.cars]
+    print len(cars)
     for car in cars:
         car.export()
 
-    # log_debug("results")
-    # for car in cars:
-    #     log_debug(str(car.total_len))
-    # log_debug(str(Car.TOTAL_LEN))
+    test_total = 0
+    for car in cars:
+        test_total += car.total_len
+
+    log_debug("results")
+    for car in cars:
+        log_debug(str(car.total_len))
+    log_debug(str(test_total))
 
 def help_and_quit(*args, **kwargs):
     print """python main.py -<n=0>

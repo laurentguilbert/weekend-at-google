@@ -4,6 +4,12 @@ import baseobjects
 
 
 class Graph(object):
+    def node_lat(self, node):
+        return self.g.node[node]['c1']
+
+    def node_long(self, node):
+        return self.g.node[node]['c2']
+
     def edge_dict(self, e):
         return self.g[e[0]][e[1]]
 
@@ -50,7 +56,7 @@ class Graph(object):
         dg = nx.DiGraph()
 
         for idx, inter in enumerate(atchoum.inters):
-            dg.add_node(idx, inter.__dict__)
+            dg.add_node(idx, **inter.__dict__)
 
         for street in atchoum.streets:
             attr_dict = {
