@@ -24,17 +24,28 @@ class Graph(object):
         return self.edge_attr(e, 'visited')
 
     def set_edge_attr(self, e, key, val):
-        self.g[e[0]][e[1]][key] = val
+        try:
+            self.g[e[0]][e[1]][key] = val
+        except:
+            pass
 
     def inc_visited(self, e, *args, **kwargs):
         self.set_edge_attr(e, 'visited', self.edge_visited(e) + 1)
+        self.set_edge_attr((e[1], e[0]), 'visited', self.edge_visited(e) + 1)
 
     def cmp_edge_score(self, e, e1, *args, **kwargs):
         """ e[score] > e1[score] """
-        return self.edge_score(e) > self.edge_score(e1)
+        se = float(self.edge_score(e))
+        se1 = float(self.edge_score(e1))
 
-    def __init__(self, atchoum):
+        if self.div_time is True:
+            se /= (float(self.edge_attr(e, 'cost'))/2)
+            se1 /= (float(self.edge_attr(e1, 'cost'))/2)
+        return se/se1
+
+    def __init__(self, atchoum, div_time=False):
         self.atchoum = atchoum
+        self.div_time = div_time
 
         dg = nx.DiGraph()
 

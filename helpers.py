@@ -9,3 +9,6 @@ EXAMPLES_LINES = [
     "0 1 1 30 250",
     "1 2 2 45 200",
 ]
+
+def log_debug(str):
+    print "#{}".format(str)
