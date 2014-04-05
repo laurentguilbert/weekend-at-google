@@ -3,6 +3,16 @@ from helpers import enum, EXAMPLES_LINES
 
 WAY = enum(UNIQUE=1, DOUBLE=2)
 
+class Car(object):
+    CAR_ID = 1
+    def __init__(self):
+        self.id = Car.CAR_ID
+        self.time = 0
+        Car.CAR_ID += 1
+
+    def add_time(self, time):
+        self.time += time
+
 
 class Intersection(object):
     def __init__(self, c1, c2):
