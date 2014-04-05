@@ -27,12 +27,21 @@ def main(filename="paris_54000.txt"):
     # generate graph
     g = Graph(data)
 
+    cars = []
+
     print cars_count
 
     for _ in range(cars_count):
         car = Car(node=start_node)
+        cars.append(car)
         while move(g, car, max_time) is not None:
             pass
         car.export()
+
+    # remove before submit
+    print "####### results #######"
+    for car in cars:
+        print "#{}".format(car.total_len)
+    print "#{}".format(Car.TOTAL_LEN)
 
 main()

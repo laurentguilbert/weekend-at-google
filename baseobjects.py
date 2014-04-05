@@ -5,10 +5,13 @@ WAY = enum(UNIQUE=1, DOUBLE=2)
 
 class Car(object):
     CAR_ID = 1
+    TOTAL_LEN = 0
+
     def __init__(self, node):
         self.node = node
         self.id = Car.CAR_ID
         self.time = 0
+        self.total_len = 0
         self.visited_nodes = [node]
         Car.CAR_ID += 1
 
@@ -19,6 +22,10 @@ class Car(object):
         self.add_time(edge_dict['cost'])
         self.node = dest_node
         self.visited_nodes.append(dest_node)
+
+        if edge_dict['visited'] == 0:
+            self.total_len += edge_dict['len']
+            Car.TOTAL_LEN += edge_dict['len']
 
     def export(self):
         print len(self.visited_nodes)

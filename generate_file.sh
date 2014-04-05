@@ -1,0 +1,1 @@
+python main.py | grep -v '#' > toto.txt
