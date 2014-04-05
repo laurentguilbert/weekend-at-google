@@ -2,47 +2,37 @@
 import networkx as nx
 
 from baseobjects import AtchoumParser
+from baseobjects import Car
+from graph import Graph
 
 
-def get_edge_dict(dg, e):
-    return dg[e[0]][e[1]]
+def move(g, car, max_time):
+    edges = [e for e in g.edges(car.node) if car.time + g.edge_cost(e) <= max_time]
+    edges.sort(key=lambda e: (g.edge_visited(e), g.edge_score(e)))
+    next_node = edges[0] if len(edges) else None
+    if next_node is not None:
+        car.move(g.edge_dict(next_node), next_node[1])
+        g.inc_visited(next_node)
+    return next_node
 
-def set_edge_attr(dg, e, key, val):
-    dg[e[0]][e[1]][key] = val
-
-def main(filename="example.txt"):
+def main(filename="paris_54000.txt"):
     data = AtchoumParser.from_filename(filename)
     inters_obj = data.inters
     streets_obj = data.streets
 
     cars_count = data.cars
-    max_cost = data.time
+    max_time = data.time
     start_node = data.start
 
-    print "cars count: {}".format(cars_count)
-    print "max cost: {}".format(max_cost)
-    print "start node: {}".format(start_node)
-
     # generate graph
-    dg = nx.DiGraph()
+    g = Graph(data)
 
-    for idx, inter in enumerate(inters_obj):
-        dg.add_node(idx, inter.__dict__)
+    print cars_count
 
-    for street in streets_obj:
-        attr_dict = {
-            'weight': street.cost,
-            'len': street.len,
-            'score': street.score,
-            'visited': False,
-        }
-        dg.add_edge(street.i1, street.i2, **attr_dict)
-        if street.way == 2:
-            dg.add_edge(street.i2, street.i1, **attr_dict)
-
-    for e in dg.edges(start_node):
-        e_dict = get_edge_dict(dg, e)
-
-        print e_dict
+    for _ in range(cars_count):
+        car = Car(node=start_node)
+        while move(g, car, max_time) is not None:
+            pass
+        car.export()
 
 main()

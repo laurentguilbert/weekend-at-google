@@ -5,13 +5,25 @@ WAY = enum(UNIQUE=1, DOUBLE=2)
 
 class Car(object):
     CAR_ID = 1
-    def __init__(self):
+    def __init__(self, node):
+        self.node = node
         self.id = Car.CAR_ID
         self.time = 0
+        self.visited_nodes = [node]
         Car.CAR_ID += 1
 
     def add_time(self, time):
         self.time += time
+
+    def move(self, edge_dict, dest_node):
+        self.add_time(edge_dict['cost'])
+        self.node = dest_node
+        self.visited_nodes.append(dest_node)
+
+    def export(self):
+        print len(self.visited_nodes)
+        for node in self.visited_nodes:
+            print node
 
 
 class Intersection(object):
@@ -30,7 +42,7 @@ class Street(object):
 
     @property
     def score(self):
-        return float(self.len) / float(self.cost)
+        return float(self.len) # / (float(self.cost) * 2)
 
 
 class AtchoumParser(object):
