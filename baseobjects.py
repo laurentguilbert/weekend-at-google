@@ -1,6 +1,8 @@
+# flake8: noqa
 from helpers import enum, EXAMPLES_LINES
 
 WAY = enum(UNIQUE=1, DOUBLE=2)
+
 
 class Intersection(object):
     def __init__(self, c1, c2):
@@ -15,6 +17,10 @@ class Street(object):
         self.way = int(way)
         self.cost = int(cost)
         self.len = int(len)
+
+    @property
+    def score(self):
+        return float(self.len) / float(self.cost)
 
 
 class AtchoumParser(object):

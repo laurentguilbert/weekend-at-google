@@ -4,6 +4,12 @@ import networkx as nx
 from baseobjects import AtchoumParser
 
 
+def get_edge_dict(dg, e):
+    return dg[e[0]][e[1]]
+
+def set_edge_attr(dg, e, key, val):
+    dg[e[0]][e[1]][key] = val
+
 def main(filename="example.txt"):
     data = AtchoumParser.from_filename(filename)
     inters_obj = data.inters
@@ -24,10 +30,19 @@ def main(filename="example.txt"):
         dg.add_node(idx, inter.__dict__)
 
     for street in streets_obj:
-        dg.add_edge(street.i1, street.i2, weight=street.cost, len=street.len)
+        attr_dict = {
+            'weight': street.cost,
+            'len': street.len,
+            'score': street.score,
+            'visited': False,
+        }
+        dg.add_edge(street.i1, street.i2, **attr_dict)
         if street.way == 2:
-            dg.add_edge(street.i2, street.i1, weight=street.cost, len=street.len)
+            dg.add_edge(street.i2, street.i1, **attr_dict)
 
-    print dg[start_node]
+    for e in dg.edges(start_node):
+        e_dict = get_edge_dict(dg, e)
+
+        print e_dict
 
 main()
