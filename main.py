@@ -7,7 +7,7 @@ from baseobjects import Car
 from graph import Graph
 from helpers import log_debug
 
-def move(g, car, max_time):
+def move0(g, car, max_time):
     """
     -0: 1.548
     """
@@ -28,13 +28,14 @@ def move(g, car, max_time):
         g.inc_visited(next_node)
     return next_node
 
-def move1(g, car, max_time):
+def move(g, car, max_time):
     edges = g.edges(car.node)
     edges = [e for e in edges if car.time + g.edge_cost(e) <= max_time]
     if len(car.visited_nodes) < 100:
         edges.sort(key=lambda e: (g.edge_visited(e), car.cardinal(*g.node_coord(e[1])), ))
     else:
-        edges.sort(key=lambda e: (g.edge_visited(e), g.edge_score(e))) # - score
+        # edges.sort(key=lambda e: (g.edge_visited(e), g.edge_score(e))) # - score
+        edges.sort(key=lambda e: (g.edge_visited(e), g.get_node_potential(e[1], exclude=[e[0]]), ))
     # print edges
     # print "=="
     next_node = edges[0] if len(edges) else None
