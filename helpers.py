@@ -12,3 +12,9 @@ EXAMPLES_LINES = [
 
 def log_debug(str):
     print "#{}".format(str)
+
+
+from math import sqrt
+
+def calc_dist(xo, yo, xd, yd):
+    return sqrt(pow(xd - xo, 2) + pow(yd - yo, 2))

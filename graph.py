@@ -10,6 +10,9 @@ class Graph(object):
     def node_long(self, node):
         return self.g.node[node]['c2']
 
+    def node_coord(self, node):
+        return (self.g.node[node]['c1'], self.g.node[node]['c2'], )
+
     def edge_dict(self, e):
         return self.g[e[0]][e[1]]
 
@@ -36,22 +39,23 @@ class Graph(object):
             pass
 
     def inc_visited(self, e, *args, **kwargs):
-        self.set_edge_attr(e, 'visited', self.edge_visited(e) + 1)
-        self.set_edge_attr((e[1], e[0]), 'visited', self.edge_visited(e) + 1)
+        hit = self.edge_visited(e) + 1
+        self.set_edge_attr(e, 'visited', hit)
+        self.set_edge_attr((e[1], e[0], ), 'visited', hit)
 
-    def cmp_edge_score(self, e, e1, *args, **kwargs):
-        """ e[score] > e1[score] """
-        se = float(self.edge_score(e))
-        se1 = float(self.edge_score(e1))
+    def get_node_potential(self, node, exclude=[], depth=5):
+        """" lower is better """
+        edges = self.edges(node)
+        nexclude = exclude + [node]
+        if depth == 0:
+            return 0
+        for edge in edges:
+            i = self.edge_visited(edge)
+            i += self.get_node_potential(edge[1], nexclude, depth - 1)
+        return i
 
-        if self.div_time is True:
-            se /= (float(self.edge_attr(e, 'cost'))/2)
-            se1 /= (float(self.edge_attr(e1, 'cost'))/2)
-        return se/se1
-
-    def __init__(self, atchoum, div_time=False):
+    def __init__(self, atchoum):
         self.atchoum = atchoum
-        self.div_time = div_time
 
         dg = nx.DiGraph()
 

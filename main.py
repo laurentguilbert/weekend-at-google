@@ -7,21 +7,51 @@ from baseobjects import Car
 from graph import Graph
 from helpers import log_debug
 
-def sort_std2(g, edges):
-    edges.sort(key=lambda e: g.edge_visited(e))
-    return edges
-
 def move(g, car, max_time):
+    """
+    -0: 1.548
+    """
     edges = g.edges(car.node)
 
-    if car.has_fixed_dest((g.node_lat(car.node), g.node_long(car.node))):
-        edges.sort(key=lambda e: car.distante_to_dest(g.node_lat(e[1]), g.node_long(e[1])))
+    if car.has_fixed_dest(): #-score
+        #edges.sort(key=lambda e: (g.edge_visited(e), car.distance_to_dest(*g.node_coord(e[1])), g.edge_score(e), ))
+        edges.sort(key=lambda e: (g.edge_visited(e), car.closer_to_dest(*g.node_coord(e[1])), car.distance_to_dest(*g.node_coord(e[1])), g.edge_score(e), ) )
+        #edges.sort(key=lambda e: (g.edge_visited(e), g.edge_score(e)))
     else:
         edges = [e for e in edges if car.time + g.edge_cost(e) <= max_time]
-        edges = sort_std2(g, edges)
+        # edges.sort(key=lambda e: (g.edge_visited(e), g.edge_score(e))) # -score
+        edges.sort(key=lambda e: (g.edge_visited(e), g.get_node_potential(e[1], exclude=[e[0]]), ))  # -score
+
     next_node = edges[0] if len(edges) else None
     if next_node is not None:
-        car.move(g.edge_dict(next_node), next_node[1])
+        car.move(g.edge_dict(next_node), next_node[1], g.node_coord(next_node[1]))
+        g.inc_visited(next_node)
+    return next_node
+
+def move1(g, car, max_time):
+    edges = g.edges(car.node)
+    edges = [e for e in edges if car.time + g.edge_cost(e) <= max_time]
+    if len(car.visited_nodes) < 100:
+        edges.sort(key=lambda e: (g.edge_visited(e), car.cardinal(*g.node_coord(e[1])), ))
+    else:
+        edges.sort(key=lambda e: (g.edge_visited(e), g.edge_score(e))) # - score
+    # print edges
+    # print "=="
+    next_node = edges[0] if len(edges) else None
+    if next_node is not None:
+        car.move(g.edge_dict(next_node), next_node[1], g.node_coord(next_node[1]))
+        g.inc_visited(next_node)
+    return next_node
+
+def move2(g, car, max_time):
+    edges = g.edges(car.node)
+    edges = [e for e in edges if car.time + g.edge_cost(e) <= max_time]
+    edges.sort(key=lambda e: (g.edge_visited(e), car.move_left(*g.node_coord(e[1])), ))
+    # print edges
+    # print "=="
+    next_node = edges[0] if len(edges) else None
+    if next_node is not None:
+        car.move(g.edge_dict(next_node), next_node[1], g.node_coord(next_node[1]))
         g.inc_visited(next_node)
     return next_node
 
@@ -39,22 +69,23 @@ def whilecanmove(cars, g, max_time):
                 can_move = True
 
 
-def main(func, div_time, filename):
+def main(func, filename):
     data = AtchoumParser.from_filename(filename)
-    cars_count = data.cars + 200
+    cars_count = data.cars#+ 200
     max_time = data.time
     start_node = data.start
-    g = Graph(data, div_time)
+    g = Graph(data)
 
+    start_coord = (g.node_lat(start_node), g.node_long(start_node), )
+    cars = [Car(node=start_node, node_coord=start_coord) for _ in range(cars_count)]
 
-    cars = [Car(node=start_node) for _ in range(cars_count)]
-
-    cars[0].dest_lat = 48.840
-    cars[0].dest_long = 2.318
-
+    cars[0].add_dests(48.840, 2.318, 100)
+    # cars[1].add_dests(48.840, 2.318, 100)
+    cars[1].add_dests(48.850, 2.293, 100)
+    cars[2].add_dests(48.832, 2.356, 150)
+    # cars[3].add_dests(48.879, 2.389, 50)
     # cars[1].dest_lat = 48.820
     # cars[1].dest_long = 2.344
-
     # cars[2].dest_lat = 48.827
     # cars[2].dest_long = 2.315
 
@@ -63,8 +94,8 @@ def main(func, div_time, filename):
 
     func(cars, g, max_time)
 
-    cars.sort(key=lambda c: -c.total_len)
-    cars = cars[:data.cars]
+    #cars.sort(key=lambda c: -c.total_len)
+    #cars = cars[:data.cars]
     print len(cars)
     for car in cars:
         car.export()
@@ -80,61 +111,19 @@ def main(func, div_time, filename):
 
 def help_and_quit(*args, **kwargs):
     print """python main.py -<n=0>
-    -0: use whilecars (divtime False)
-    -1: use whilecanmove (divtime False)
-
-    -2: use whilecars (divtime True)
-    -3: use whilecanmove (divtime False)
+    -0: use whilecars
+    -1: use whilecanmove
     """
     sys.exit(0)
 
 div_time = False
 func = whilecars
 filename = "paris_54000.txt"
-opts = {
-    '-0': whilecars,
-    '-2': whilecars,
-    '-1': whilecanmove,
-    '-3': whilecanmove,
-}
-opts_div_time = {
-    '-0': False,
-    '-2': True,
-    '-1': False,
-    '-3': True,
-}
+opts = { '-0': whilecars, '-1': whilecanmove, }
 func = help_and_quit
 if len(sys.argv) == 1:
     func = whilecars
 elif (len(sys.argv) == 2):
     func = opts.get(sys.argv[1], help_and_quit)
-    div_time = opts_div_time.get(sys.argv[1], help_and_quit)
 
-main(func, div_time, filename)
-
-
-def sort_std(g, edges):
-    """ deprecated """
-    edges.sort(key=lambda e: (g.edge_visited(e), g.edge_score(e)))
-    return edges
-
-def sort_my(g, edges):
-    """ deprecated: use sortstd"""
-    visited = {}
-    visited_list = []
-    for e in edges:
-        slug = g.edge_visited(e)
-        if not slug in visited_list:
-            visited_list.append(slug)
-        if not slug in visited:
-            visited[slug] = [e]
-        else:
-            visited[slug].append(e)
-
-    visited_list.sort()
-    res = []
-    for k in visited_list:
-        l = visited[k]
-        l.sort(key=lambda e: g.edge_score(e), reverse=True)
-        res += l
-    return res
+main(func, filename)
